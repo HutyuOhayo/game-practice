@@ -1,7 +1,9 @@
 import pygame
+from pygame.sprite import Sprite
 
-class Ship():
+class Ship(Sprite):
     def __init__(self, ai_settings, screen):
+        super(Ship, self).__init__()
         self.screen = screen
         self.ai_settings = ai_settings
         self.image = pygame.image.load('images/ship.png')
@@ -21,6 +23,9 @@ class Ship():
             self.rect.centerx -= 1
             self.center -= self.ai_settings.ship_speed_factor
         self.rect.centerx = self.center
+
+    def center_ship(self):
+        self.center = self.screen_rect.centerx
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)
