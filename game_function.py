@@ -63,9 +63,9 @@ def update_aliens(ai_settings, screen, stats, sb, ship, aliens, bullets):
     
 
 def check_keydown_events(event, ai_settings, screen, ship, bullets):
-    if event.key == pygame.K_d:
+    if event.key == pygame.K_RIGHT:
         ship.moving_right = True
-    elif event.key == pygame.K_a:
+    elif event.key == pygame.K_LEFT:
         ship.moving_left = True
     elif event.key == pygame.K_SPACE:
         fire_bullet(ai_settings, screen, ship, bullets)
@@ -74,9 +74,9 @@ def check_keydown_events(event, ai_settings, screen, ship, bullets):
 
 
 def check_keyup_events(event, ship):
-    if event.key == pygame.K_d:
+    if event.key == pygame.K_RIGHT:
         ship.moving_right = False
-    elif event.key == pygame.K_a:
+    elif event.key == pygame.K_LEFT:
         ship.moving_left = False
 
 
