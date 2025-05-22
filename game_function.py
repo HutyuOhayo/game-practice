@@ -3,17 +3,18 @@ import pygame
 from alien import Alien
 from bullet import Bullet
 from time import sleep
-
+from boss import Boss
+from game_stats import GameStats
 
 
 def update_screen(ai_settings, screen, stats, sb, ship, aliens, bullets,
 play_button):
-    screen.fill(ai_settings.bg_color)
+    # screen.fill(ai_settings.bg_color)
     for bullet in bullets.sprites():
         bullet.draw_bullet()
     ship.blitme()
-    aliens.draw(screen)
     sb.show_score()
+    aliens.draw(screen)
     if not stats.game_active:
         play_button.draw_button()
     pygame.display.flip()
@@ -23,14 +24,14 @@ def ship_hit(ai_settings, screen, stats, sb, ship, aliens, bullets):
     if stats.ships_left > 0:
         stats.ships_left -= 1
         sb.prep_ships()
-        aliens.empty()
-        bullets.empty()
-        create_fleet(ai_settings, screen, ship, aliens)
-        ship.center_ship()
         sleep(0.5)
     else:
         stats.game_active = False
         pygame.mouse.set_visible(True)
+    aliens.empty()
+    bullets.empty()
+    create_fleet(ai_settings, screen, ship, aliens, stats)
+    ship.center_ship()
 
 
 def check_aliens_bottom(ai_settings, screen, stats, sb, ship, aliens, bullets):
@@ -106,7 +107,7 @@ def check_play_button(ai_settings, screen, stats, sb, play_button, ship, aliens,
             sb.prep_ships()
             aliens.empty()
             bullets.empty()
-            create_fleet(ai_settings, screen, ship, aliens)
+            create_fleet(ai_settings, screen, ship, aliens, stats)
             ship.center_ship()
 
 def update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets):    
@@ -119,19 +120,32 @@ aliens, bullets)
 
 def check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship,
 aliens, bullets):
+    
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+
     if collisions:
-        stats.score += ai_settings.alien_points
-        for aliens in collisions.values():
-            stats.score += ai_settings.alien_points * len(aliens)
-        sb.prep_score()
-        check_high_score(stats, sb)
-    if len(aliens) == 0:
+        for alienlist in collisions.values():
+            for alien in alienlist:
+                if isinstance(alien, Boss):
+                    if alien.hit():
+                        stats.score += ai_settings.boss_points
+                        sb.prep_level()
+                        check_high_score(stats, sb)
+                        aliens.remove(alien)
+                        stats.game_active = False
+                        pygame.mouse.set_visible(True)
+                else:
+                        stats.score += ai_settings.alien_points * len(aliens)
+                        aliens.remove()
+                        sb.prep_level()
+                        check_high_score(stats, sb)
+
+    if len(aliens) == 0 and stats.game_active:
         bullets.empty()
         stats.level += 1
         sb.prep_level()
         ai_settings.increase_speed()
-        create_fleet(ai_settings, screen, ship, aliens)
+        create_fleet(ai_settings, screen, ship, aliens, stats)
 
 
 def fire_bullet(ai_settings, screen, ship, bullets):
@@ -139,16 +153,24 @@ def fire_bullet(ai_settings, screen, ship, bullets):
         new_bullet = Bullet(ai_settings, screen, ship)
         bullets.add(new_bullet)
 
-
-def create_fleet(ai_settings, screen, ship, aliens):
-    alien = Alien(ai_settings, screen)
-    number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
-    number_rows = get_number_rows(ai_settings, ship.rect.height,
-    alien.rect.height)
-    for row_number in range(number_rows):
-        for alien_number in range(number_aliens_x):
-            create_alien(ai_settings, screen, aliens, alien_number,
-            row_number)
+def create_fleet(ai_settings, screen, ship, aliens, stats):
+    aliens.empty()
+    if stats.level == 5:
+        boss = Boss(ai_settings, screen)
+        boss_width = boss.rect.width
+        boss.x = boss_width
+        boss.rect.x = boss.x
+        boss.rect.y = boss.rect.height
+        aliens.add(boss)
+    else:
+        alien = Alien(ai_settings, screen)
+        number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
+        number_rows = get_number_rows(ai_settings, ship.rect.height,
+        alien.rect.height)
+        for row_number in range(number_rows):
+            for alien_number in range(number_aliens_x):
+                create_alien(ai_settings, screen, aliens, alien_number,
+                row_number)
 
 
 def get_number_aliens_x(ai_settings, alien_width):

@@ -14,6 +14,9 @@ def run_game():
     pygame.init()
 
     pygame.display.set_caption('Allien Invasion')
+    ico = pygame.image.load('images/ship.png')
+    pygame.display.set_icon(ico)
+    background = pygame.image.load('images/1280.jpg')
 
     ai_settings = Settings()
     screen = pygame.display.set_mode(
@@ -24,12 +27,13 @@ def run_game():
     aliens = Group()
     stats = GameStats(ai_settings)
     sb = Scoreboard(ai_settings, screen, stats)
-    gf.create_fleet(ai_settings, screen, ship, aliens)
+    gf.create_fleet(ai_settings, screen, ship, aliens, stats)
     play_button = Button(ai_settings, screen, "Play")
     while True:
+        screen.blit(background, (0,0))
         gf.check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, bullets)
         if stats.game_active:
-            ship.update()
+            ship.update()  
             gf.update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets)
             gf.update_aliens(ai_settings, screen, stats, sb, ship, aliens, bullets)
 
